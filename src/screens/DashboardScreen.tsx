@@ -15,6 +15,7 @@ import { Colors, Spacing, BorderRadius, Shadows, FontFamily, FontSize } from '..
 import { ContainerRepository } from '../database/repositories/ContainerRepository';
 import { ItemRepository } from '../database/repositories/ItemRepository';
 import { useAppNavigation } from '../navigation/NavigationContext';
+import { useEcoStore } from '../store/ecoStore';
 import type { ContainerType } from '../types/common';
 import { CONTAINER_TYPE_LABELS, CONTAINER_TYPE_ICONS } from '../types/common';
 
@@ -118,6 +119,8 @@ export default function DashboardScreen() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { ecoStats, loadEcoStats } = useEcoStore();
+
   const contentFade = useRef(new Animated.Value(0)).current;
   const contentSlide = useRef(new Animated.Value(16)).current;
   const refreshRotate = useRef(new Animated.Value(0)).current;
@@ -140,6 +143,8 @@ export default function DashboardScreen() {
         ContainerRepository.getStatsByType(),
         ContainerRepository.getTopFilledContainers(5),
       ]);
+      // Cargar stats eco en paralelo con las cargas existentes
+      loadEcoStats();
       setStats({
         totalContainers: containers.length,
         totalItems,
@@ -258,6 +263,27 @@ export default function DashboardScreen() {
                 subtitle="unidades"
               />
             </View>
+
+            {/* Eco points card — solo cuando hay datos eco */}
+            {ecoStats !== null && (
+              <View style={styles.metricsRow}>
+                <StatCard
+                  label="Puntos Eco"
+                  value={ecoStats.ecoPoints}
+                  icon="leaf"
+                  gradient={Colors.gradients.accent}
+                  subtitle={`${ecoStats.totalRescued} rescatado${ecoStats.totalRescued !== 1 ? 's' : ''}`}
+                />
+                <View style={styles.metricGap} />
+                <StatCard
+                  label="Rescatados"
+                  value={ecoStats.totalRescued}
+                  icon="checkmark-circle"
+                  gradient={['#34D399', '#059669']}
+                  subtitle="completados"
+                />
+              </View>
+            )}
 
             {/* Average card */}
             {stats.totalContainers > 0 && (

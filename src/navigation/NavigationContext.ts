@@ -11,10 +11,16 @@ export type RouteName =
   | 'CreateContainer'
   | 'EditContainer'
   | 'CreateItem'
+  | 'EditItem'
   | 'Dashboard'
   | 'Settings'
   | 'Tags'
-  | 'Locations';
+  | 'Locations'
+  // ── Módulo Reciclador Inteligente ──────────────────────────────────────────
+  | 'EcoHub'         // Pantalla principal del módulo (tab Eco)
+  | 'EcoClassify'    // Flujo de clasificación de ítems candidatos a desuso
+  | 'EcoItemDetail'  // Detalle y edición de acción ecológica de un ítem
+  | 'EcoHistory';    // Historial de acciones ecológicas completadas
 
 export type RouteParams = {
   containerId?: string;

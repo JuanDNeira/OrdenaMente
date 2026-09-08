@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 import { Text } from '../components/ui';
 import { Colors, Spacing, BorderRadius, FontFamily, FontSize, Shadows } from '../theme';
 import { useAppNavigation } from '../navigation/NavigationContext';
@@ -216,37 +216,31 @@ export default function SettingsScreen() {
   };
 
   const handleImport = async () => {
-    // Find the most recent backup in the cache directory
     Alert.alert(
       'Importar respaldo',
-      'Primero exporta un respaldo desde esta pantalla. El archivo más reciente en el directorio de caché será importado.\n\nEsto reemplazará TODOS los datos actuales.',
+      'Se abrirá el selector de archivos. Elige el archivo JSON de respaldo de OrdenaMente.\n\nEsto reemplazará TODOS los datos actuales.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Buscar respaldo',
+          text: 'Seleccionar archivo',
           onPress: async () => {
             try {
-              const cacheDir = FileSystem.cacheDirectory ?? '';
-              const files = await FileSystem.readDirectoryAsync(cacheDir);
-              const backups = files
-                .filter((f) => f.startsWith('san-alejo-backup-') && f.endsWith('.json'))
-                .sort()
-                .reverse();
+              const result = await DocumentPicker.getDocumentAsync({
+                type: 'application/json',
+                copyToCacheDirectory: true,
+              });
 
-              if (backups.length === 0) {
-                Alert.alert(
-                  'Sin respaldo',
-                  'No se encontró ningún archivo de respaldo. Exporta primero desde esta pantalla y luego importa.'
-                );
+              if (result.canceled || !result.assets || result.assets.length === 0) {
                 return;
               }
 
-              const latestFile = backups[0];
-              const fileUri = `${cacheDir}${latestFile}`;
+              const file = result.assets[0];
+              const fileUri = file.uri;
+              const fileName = file.name ?? 'respaldo.json';
 
               Alert.alert(
                 'Confirmar importación',
-                `Se importará: ${latestFile}\n\nEsto reemplazará todos los datos actuales. ¿Continuar?`,
+                `Se importará: ${fileName}\n\nEsto reemplazará todos los datos actuales. ¿Continuar?`,
                 [
                   { text: 'Cancelar', style: 'cancel' },
                   {
@@ -255,16 +249,27 @@ export default function SettingsScreen() {
                     onPress: async () => {
                       setIsImporting(true);
                       try {
-                        const { imported } = await importDatabase(fileUri);
+                        const result = await importDatabase(fileUri);
                         await loadContainers();
                         await loadInfo();
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        const detail = [
+                          `📦 ${result.containers} contenedores`,
+                          `🗂 ${result.items} ítems`,
+                          result.tags > 0 ? `🏷 ${result.tags} etiquetas` : null,
+                          result.locations > 0 ? `📍 ${result.locations} ubicaciones` : null,
+                          result.ecoAchievements > 0 ? `🌱 ${result.ecoAchievements} logros ecológicos` : null,
+                        ].filter(Boolean).join('\n');
                         Alert.alert(
-                          'Importación exitosa',
-                          `Se importaron ${imported} registros correctamente.`
+                          'Importación completada',
+                          detail
                         );
                       } catch (e) {
-                        Alert.alert('Error al importar', e instanceof Error ? e.message : 'Archivo inválido.');
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                        Alert.alert(
+                          'No se pudo importar',
+                          e instanceof Error ? e.message : 'Verifica que el archivo sea un respaldo válido de OrdenaMente.'
+                        );
                       } finally {
                         setIsImporting(false);
                       }
@@ -273,7 +278,7 @@ export default function SettingsScreen() {
                 ]
               );
             } catch (e) {
-              Alert.alert('Error', 'No se pudo acceder al directorio de archivos.');
+              Alert.alert('Error', 'No se pudo abrir el selector de archivos.');
             }
           },
         },
@@ -396,7 +401,7 @@ export default function SettingsScreen() {
             iconColor={Colors.primary}
             iconBg={Colors.primaryGlow}
             title="Importar respaldo"
-            subtitle="Restaurar desde último backup exportado"
+            subtitle="Seleccionar archivo JSON de respaldo"
             onPress={handleImport}
             loading={isImporting}
           />

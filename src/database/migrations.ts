@@ -20,6 +20,55 @@ export const migrations: Migration[] = [
     },
   },
   {
+    // v4: ecological fields on items + eco_achievements table + eco indexes
+    version: 4,
+    up: async (db) => {
+      await db.withTransactionAsync(async () => {
+        // ── Campos ecológicos en items ──────────────────────────────────────
+        // ALTER TABLE ADD COLUMN nunca modifica filas existentes; los registros
+        // previos quedan con NULL en estos campos, lo que es válido por diseño.
+        await db.execAsync(
+          "ALTER TABLE items ADD COLUMN eco_action TEXT DEFAULT NULL " +
+          "CHECK(eco_action IN ('recycle','donate','sell','reuse','repair','discard') OR eco_action IS NULL);"
+        );
+        await db.execAsync(
+          'ALTER TABLE items ADD COLUMN eco_notes TEXT DEFAULT NULL;'
+        );
+        await db.execAsync(
+          'ALTER TABLE items ADD COLUMN eco_completed_at INTEGER DEFAULT NULL;'
+        );
+        await db.execAsync(
+          "ALTER TABLE items ADD COLUMN eco_status TEXT DEFAULT NULL " +
+          "CHECK(eco_status IN ('pending','completed','skipped') OR eco_status IS NULL);"
+        );
+
+        // ── Tabla de logros ecológicos ──────────────────────────────────────
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS eco_achievements (
+            id          TEXT PRIMARY KEY,
+            type        TEXT NOT NULL CHECK(type IN (
+                          'first_rescue','guardian_verde','eco_heroe',
+                          'maestro_reciclaje','leyenda_sostenible','campeon_planeta'
+                        )),
+            unlocked_at INTEGER NOT NULL,
+            metadata    TEXT
+          );
+        `);
+
+        // ── Índices para búsquedas ecológicas frecuentes ────────────────────
+        // idx_items_eco_action: findByEcoAction(), filtros en SearchScreen,
+        //   y también beneficia findUnclassified (eco_action IS NULL)
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_items_eco_action ON items(eco_action);'
+        );
+        // idx_items_eco_status: findPending(), findCompleted(), getEcoStats()
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_items_eco_status ON items(eco_status);'
+        );
+      });
+    },
+  },
+  {
     // v3: performance indexes for frequent queries
     version: 3,
     up: async (db) => {

@@ -81,6 +81,11 @@ function renderScreen(route: RouteName) {
       const CreateItemScreen = require('../screens/CreateItemScreen').default;
       return <CreateItemScreen />;
     }
+    case 'EditItem': {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const EditItemScreen = require('../screens/EditItemScreen').default;
+      return <EditItemScreen />;
+    }
     case 'Dashboard': {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const DashboardScreen = require('../screens/DashboardScreen').default;
@@ -100,6 +105,27 @@ function renderScreen(route: RouteName) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const LocationsScreen = require('../screens/LocationsScreen').default;
       return <LocationsScreen />;
+    }
+    // ── Módulo Reciclador Inteligente ──────────────────────────────────────
+    case 'EcoHub': {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const EcoHubScreen = require('../screens/EcoHubScreen').default;
+      return <EcoHubScreen />;
+    }
+    case 'EcoClassify': {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const EcoClassifyScreen = require('../screens/EcoClassifyScreen').default;
+      return <EcoClassifyScreen />;
+    }
+    case 'EcoItemDetail': {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const EcoItemDetailScreen = require('../screens/EcoItemDetailScreen').default;
+      return <EcoItemDetailScreen />;
+    }
+    case 'EcoHistory': {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const EcoHistoryScreen = require('../screens/EcoHistoryScreen').default;
+      return <EcoHistoryScreen />;
     }
     default:
       return <TabNavigator />;

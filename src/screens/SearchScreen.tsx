@@ -22,6 +22,8 @@ import type { Container } from '../types/Container';
 import type { Item } from '../types/Item';
 import type { Tag } from '../types/Tag';
 import { CONTAINER_TYPE_LABELS, CONTAINER_TYPE_ICONS } from '../types/common';
+import { ECO_ACTION_LABELS, ECO_ACTION_ICONS, ECO_ACTIONS } from '../types/Eco';
+import type { EcoAction } from '../types/Item';
 
 const RECENTS_KEY = 'san_alejo_recent_searches';
 const MAX_RECENTS = 8;
@@ -161,6 +163,7 @@ export default function SearchScreen() {
   const [containers, setContainers] = useState<Container[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [activeEcoFilter, setActiveEcoFilter] = useState<EcoAction | 'unclassified' | null>(null);
 
   const hasQuery = query.trim().length > 0 || selectedTagIds.length > 0 || activeFilter === 'favorites';
 
@@ -169,7 +172,7 @@ export default function SearchScreen() {
     TagRepository.findAll().then(setAllTags).catch(() => {});
   }, []);
 
-  const runSearch = useCallback(async (q: string, tagIds: string[], filter: FilterType) => {
+  const runSearch = useCallback(async (q: string, tagIds: string[], filter: FilterType, ecoFilter: EcoAction | 'unclassified' | null = null) => {
     setIsSearching(true);
     try {
       const trimmed = q.trim();
@@ -177,22 +180,18 @@ export default function SearchScreen() {
       let newItems: Item[] = [];
 
       if (filter === 'favorites' && !trimmed && tagIds.length === 0) {
-        // Favorites-only browse — load all favorites
         newContainers = await ContainerRepository.findFavorites();
       } else if (tagIds.length > 0 && !trimmed) {
-        // Tag-only search
         if (filter !== 'items') {
           newContainers = await ContainerRepository.findByTagIds(tagIds);
         }
       } else if (trimmed) {
-        // Text search
         if (filter !== 'items') {
           newContainers = await ContainerRepository.search(trimmed);
         }
         if (filter !== 'containers' && filter !== 'favorites') {
           newItems = await ItemRepository.search(trimmed);
         }
-        // Filter by tags if any selected
         if (tagIds.length > 0 && newContainers.length > 0) {
           const tagFiltered = await ContainerRepository.findByTagIds(tagIds);
           const tagFilteredIds = new Set(tagFiltered.map((c) => c.id));
@@ -200,10 +199,18 @@ export default function SearchScreen() {
         }
       }
 
-      // Apply favorites filter on text results
       if (filter === 'favorites' && trimmed) {
         newContainers = newContainers.filter((c) => c.is_favorite);
         newItems = newItems.filter((i) => i.is_favorite);
+      }
+
+      // Aplicar filtro eco sobre ítems (AND lógico con búsqueda por texto)
+      if (ecoFilter !== null) {
+        if (ecoFilter === 'unclassified') {
+          newItems = newItems.filter((i) => i.eco_action == null);
+        } else {
+          newItems = newItems.filter((i) => i.eco_action === ecoFilter);
+        }
       }
 
       setContainers(newContainers);
@@ -219,22 +226,31 @@ export default function SearchScreen() {
   const setQuery = useCallback((q: string) => {
     setQueryState(q);
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => runSearch(q, selectedTagIds, activeFilter), DEBOUNCE_MS);
-  }, [runSearch, selectedTagIds, activeFilter]);
+    debounceTimer.current = setTimeout(() => runSearch(q, selectedTagIds, activeFilter, activeEcoFilter), DEBOUNCE_MS);
+  }, [runSearch, selectedTagIds, activeFilter, activeEcoFilter]);
 
   const handleFilterPress = useCallback((filter: FilterType) => {
     setActiveFilter(filter);
     Haptics.selectionAsync();
-    runSearch(query, selectedTagIds, filter);
-  }, [query, selectedTagIds, runSearch]);
+    runSearch(query, selectedTagIds, filter, activeEcoFilter);
+  }, [query, selectedTagIds, runSearch, activeEcoFilter]);
   const handleTagToggle = useCallback((tagId: string) => {
     Haptics.selectionAsync();
     setSelectedTagIds((prev) => {
       const next = prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId];
-      runSearch(query, next, activeFilter);
+      runSearch(query, next, activeFilter, activeEcoFilter);
       return next;
     });
-  }, [query, activeFilter, runSearch]);
+  }, [query, activeFilter, runSearch, activeEcoFilter]);
+
+  const handleEcoFilterPress = useCallback((filter: EcoAction | 'unclassified') => {
+    Haptics.selectionAsync();
+    setActiveEcoFilter((prev) => {
+      const next = prev === filter ? null : filter;
+      runSearch(query, selectedTagIds, activeFilter, next);
+      return next;
+    });
+  }, [query, selectedTagIds, activeFilter, runSearch]);
 
   const handleContainerPress = useCallback(async (containerId: string) => {
     const updated = await saveRecent(query, recents);
@@ -520,6 +536,66 @@ export default function SearchScreen() {
         })}
       </ScrollView>
 
+      {/* Eco filter chips — visible when filter is 'all' or 'items' */}
+      {(activeFilter === 'all' || activeFilter === 'items') && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContent}
+          style={styles.ecoFiltersRow}
+        >
+          {/* Chip "Sin clasificar" */}
+          <TouchableOpacity
+            style={[
+              styles.ecoFilterChip,
+              activeEcoFilter === 'unclassified' && styles.ecoFilterChipActive,
+            ]}
+            onPress={() => handleEcoFilterPress('unclassified')}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel="Sin clasificar"
+            accessibilityState={{ selected: activeEcoFilter === 'unclassified' }}
+          >
+            <Ionicons
+              name="help-circle-outline"
+              size={13}
+              color={activeEcoFilter === 'unclassified' ? Colors.accent : Colors.textTertiary}
+              style={styles.filterChipIcon}
+            />
+            <Text style={[styles.ecoFilterChipText, { color: activeEcoFilter === 'unclassified' ? Colors.accent : Colors.textTertiary }]}>
+              Sin clasificar
+            </Text>
+          </TouchableOpacity>
+
+          {/* Chips por EcoAction */}
+          {ECO_ACTIONS.map((action) => {
+            const isActive = activeEcoFilter === action;
+            const iconName = ECO_ACTION_ICONS[action] as React.ComponentProps<typeof Ionicons>['name'];
+            return (
+              <TouchableOpacity
+                key={action}
+                style={[styles.ecoFilterChip, isActive && styles.ecoFilterChipActive]}
+                onPress={() => handleEcoFilterPress(action)}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel={ECO_ACTION_LABELS[action]}
+                accessibilityState={{ selected: isActive }}
+              >
+                <Ionicons
+                  name={iconName}
+                  size={13}
+                  color={isActive ? Colors.accent : Colors.textTertiary}
+                  style={styles.filterChipIcon}
+                />
+                <Text style={[styles.ecoFilterChipText, { color: isActive ? Colors.accent : Colors.textTertiary }]}>
+                  {ECO_ACTION_LABELS[action]}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
       {/* Content */}
       {!hasQuery && renderIdleState()}
       {hasQuery && isSearching && (
@@ -592,6 +668,24 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   filterChipIcon: { marginRight: 5 },
   filterChipText: { fontFamily: FontFamily.medium, fontSize: FontSize.sm },
+  // Eco filter chips
+  ecoFiltersRow: { maxHeight: 40, marginBottom: Spacing[2] },
+  ecoFilterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing[3],
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    marginRight: Spacing[2],
+  },
+  ecoFilterChipActive: {
+    backgroundColor: Colors.accentGlow,
+    borderColor: Colors.accent,
+  },
+  ecoFilterChipText: { fontFamily: FontFamily.medium, fontSize: FontSize.xs },
   // Idle
   idleScroll: { flex: 1 },
   idleContent: { paddingHorizontal: Spacing[4], paddingTop: Spacing[2], paddingBottom: Spacing[20] },

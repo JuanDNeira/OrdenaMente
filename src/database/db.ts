@@ -16,7 +16,7 @@ export function getDb(): SQLite.SQLiteDatabase {
 export async function initializeDb(): Promise<void> {
   if (_db) return;
 
-  _db = await SQLite.openDatabaseAsync('ordenamente.db');
+  _db = await SQLite.openDatabaseAsync('san-alejo.db');
 
   // Enable WAL mode and foreign keys
   await _db.execAsync('PRAGMA journal_mode = WAL;');

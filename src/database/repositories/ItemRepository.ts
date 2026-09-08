@@ -1,7 +1,7 @@
 import { getDb } from '../db';
 import { generateUUID } from '../../utils/uuid';
 import { nowTimestamp } from '../../utils/dateUtils';
-import type { Item, CreateItemInput, UpdateItemInput } from '../../types/Item';
+import type { Item, EcoAction, EcoStatus, CreateItemInput, UpdateItemInput } from '../../types/Item';
 
 export class ItemNotFoundError extends Error {
   constructor(id: string) {
@@ -10,7 +10,7 @@ export class ItemNotFoundError extends Error {
   }
 }
 
-function rowToItem(row: Record<string, unknown>): Item {
+export function rowToItem(row: Record<string, unknown>): Item {
   return {
     id: row.id as string,
     name: row.name as string,
@@ -21,6 +21,11 @@ function rowToItem(row: Record<string, unknown>): Item {
     is_favorite: Number(row.is_favorite ?? 0) === 1,
     created_at: Number(row.created_at),
     updated_at: Number(row.updated_at),
+    // Campos ecológicos — NULL en BD se convierte en undefined en TypeScript
+    eco_action: (row.eco_action as EcoAction) ?? undefined,
+    eco_notes: (row.eco_notes as string) ?? undefined,
+    eco_completed_at: row.eco_completed_at != null ? Number(row.eco_completed_at) : undefined,
+    eco_status: (row.eco_status as EcoStatus) ?? undefined,
   };
 }
 

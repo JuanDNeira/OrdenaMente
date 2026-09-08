@@ -21,7 +21,7 @@ export const Colors = {
   primary: '#6C63FF',           // Violeta premium
   primaryLight: '#8B85FF',
   primaryDark: '#4F48CC',
-  primaryGlow: '#2A2566',
+  primaryGlow: '#2A2566',       // Fondo del ícono activo del tab Home/Panel
 
   // ─── Acento secundario ────────────────────────────────────────────────────
   secondary: '#FF6584',         // Rosa coral
@@ -29,9 +29,10 @@ export const Colors = {
   secondaryDark: '#CC4F69',
 
   // ─── Acento terciario ─────────────────────────────────────────────────────
-  accent: '#00D4AA',            // Verde menta / teal
+  accent: '#00D4AA',            // Verde menta / teal — color primario del módulo Eco
   accentLight: '#33DDBB',
   accentDark: '#00A882',
+  accentGlow: '#003D30',        // Fondo del ícono activo del tab Eco
 
   // ─── Texto ────────────────────────────────────────────────────────────────
   textPrimary: '#F0F0F8',       // Blanco suave — texto principal

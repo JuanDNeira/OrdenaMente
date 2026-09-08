@@ -20,7 +20,6 @@ import {
   TypeSelector,
   ColorPicker,
   TagBadge,
-  ImagePickerButton,
 } from '../components/ui';
 import { Colors, Spacing, BorderRadius } from '../theme';
 import { useContainerStore } from '../store/containerStore';
@@ -34,10 +33,8 @@ import type { Location } from '../types/Location';
 
 interface FormState {
   name: string;
-  description: string;
   type: ContainerType;
   color_tag: string | undefined;
-  cover_image_uri: string | undefined;
   location_id: string | undefined;
   selectedTagIds: string[];
 }
@@ -53,10 +50,8 @@ export default function CreateContainerScreen() {
 
   const [form, setForm] = useState<FormState>({
     name: '',
-    description: '',
     type: 'box',
     color_tag: Colors.containerTags[0],
-    cover_image_uri: undefined,
     location_id: params?.locationId,
     selectedTagIds: [],
   });
@@ -99,10 +94,8 @@ export default function CreateContainerScreen() {
     try {
       const container = await createContainer({
         name: form.name.trim(),
-        description: form.description.trim() || undefined,
         type: form.type,
         color_tag: form.color_tag,
-        cover_image_uri: form.cover_image_uri,
         location_id: form.location_id,
         parent_container_id: params?.parentContainerId,
       });
@@ -153,22 +146,13 @@ export default function CreateContainerScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.previewGradient}
         >
-          <ImagePickerButton
-            uri={form.cover_image_uri}
-            onImageSelected={(uri) => updateField('cover_image_uri', uri)}
-            onImageRemoved={() => updateField('cover_image_uri', undefined)}
-            size="md"
-            label="Foto"
-          />
+          <View style={[styles.previewIconWrapper, { backgroundColor: `${selectedColor}22`, borderColor: `${selectedColor}55` }]}>
+            <Ionicons name="cube-outline" size={28} color={selectedColor} />
+          </View>
           <View style={styles.previewInfo}>
             <Text variant="headingMedium" color={Colors.textPrimary} numberOfLines={1}>
               {form.name || 'Sin nombre'}
             </Text>
-            {form.description ? (
-              <Text variant="bodySmall" color={Colors.textTertiary} numberOfLines={1}>
-                {form.description}
-              </Text>
-            ) : null}
             <View style={[styles.previewColorDot, { backgroundColor: selectedColor }]} />
           </View>
         </LinearGradient>
@@ -191,16 +175,6 @@ export default function CreateContainerScreen() {
           icon="cube-outline"
           maxLength={100}
           returnKeyType="next"
-        />
-
-        <PremiumInput
-          label="Descripción (opcional)"
-          value={form.description}
-          onChangeText={(v) => updateField('description', v)}
-          icon="document-text-outline"
-          multiline
-          numberOfLines={3}
-          maxLength={300}
         />
 
         {/* Tipo */}
@@ -333,9 +307,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[5],
     paddingVertical: Spacing[4],
   },
+  previewIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing[4],
+  },
   previewInfo: {
     flex: 1,
-    marginLeft: Spacing[4],
+    marginLeft: 0,
   },
   previewColorDot: {
     width: 10,

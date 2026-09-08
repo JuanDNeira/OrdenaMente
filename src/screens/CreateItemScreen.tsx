@@ -20,12 +20,14 @@ import {
   TagBadge,
   ImagePickerButton,
 } from '../components/ui';
-import { Colors, Spacing, BorderRadius } from '../theme';
+import { Colors, Spacing, BorderRadius, FontFamily, FontSize } from '../theme';
 import { useItemStore } from '../store/itemStore';
 import { TagRepository } from '../database/repositories/TagRepository';
 import { useAppNavigation } from '../navigation/NavigationContext';
 import { validateItemName, validateQuantity } from '../utils/validation';
 import type { Tag } from '../types/Tag';
+import { ECO_ACTION_LABELS, ECO_ACTION_ICONS, ECO_ACTIONS } from '../types/Eco';
+import type { EcoAction } from '../types/Item';
 
 interface FormState {
   name: string;
@@ -55,6 +57,8 @@ export default function CreateItemScreen() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [tags, setTags] = useState<Tag[]>([]);
+  const [ecoExpanded, setEcoExpanded] = useState(false);
+  const [selectedEcoAction, setSelectedEcoAction] = useState<EcoAction | undefined>();
 
   useEffect(() => {
     TagRepository.findAll().then(setTags).catch(() => {});
@@ -114,6 +118,8 @@ export default function CreateItemScreen() {
         container_id: containerId,
         cover_image_uri: form.cover_image_uri,
         tag_ids: form.selectedTagIds.length > 0 ? form.selectedTagIds : undefined,
+        eco_action: selectedEcoAction ?? null,
+        eco_status: selectedEcoAction ? 'pending' : null,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       goBack();
@@ -251,6 +257,59 @@ export default function CreateItemScreen() {
           </>
         )}
 
+        {/* ── Sección eco colapsable ──────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.ecoToggle}
+          onPress={() => {
+            Haptics.selectionAsync();
+            setEcoExpanded((v) => !v);
+          }}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel="Acción ecológica opcional"
+          accessibilityState={{ expanded: ecoExpanded }}
+        >
+          <Ionicons name="leaf-outline" size={16} color={Colors.accent} />
+          <Text style={styles.ecoToggleLabel}>Acción ecológica (opcional)</Text>
+          <Ionicons
+            name={ecoExpanded ? 'chevron-up' : 'chevron-down'}
+            size={14}
+            color={Colors.textTertiary}
+          />
+        </TouchableOpacity>
+
+        {ecoExpanded && (
+          <View style={styles.ecoGrid}>
+            {ECO_ACTIONS.map((action) => {
+              const isSelected = selectedEcoAction === action;
+              const iconName = ECO_ACTION_ICONS[action] as React.ComponentProps<typeof Ionicons>['name'];
+              return (
+                <TouchableOpacity
+                  key={action}
+                  style={[styles.ecoChip, isSelected && styles.ecoChipActive]}
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    setSelectedEcoAction(isSelected ? undefined : action);
+                  }}
+                  activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel={ECO_ACTION_LABELS[action]}
+                  accessibilityState={{ selected: isSelected }}
+                >
+                  <Ionicons
+                    name={iconName}
+                    size={14}
+                    color={isSelected ? Colors.accent : Colors.textTertiary}
+                  />
+                  <Text style={[styles.ecoChipLabel, { color: isSelected ? Colors.accent : Colors.textTertiary }]}>
+                    {ECO_ACTION_LABELS[action]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -382,5 +441,49 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 2,
+  },
+  // ── Eco section ──────────────────────────────────────────────────────────
+  ecoToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    paddingVertical: Spacing[3],
+    paddingHorizontal: Spacing[3],
+    marginTop: Spacing[4],
+    backgroundColor: Colors.backgroundTertiary,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: `${Colors.accent}33`,
+  },
+  ecoToggleLabel: {
+    flex: 1,
+    fontFamily: FontFamily.medium,
+    fontSize: FontSize.sm,
+    color: Colors.accent,
+  },
+  ecoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[2],
+    marginTop: Spacing[3],
+  },
+  ecoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  ecoChipActive: {
+    backgroundColor: Colors.accentGlow,
+    borderColor: Colors.accent,
+  },
+  ecoChipLabel: {
+    fontFamily: FontFamily.medium,
+    fontSize: FontSize.xs,
   },
 });

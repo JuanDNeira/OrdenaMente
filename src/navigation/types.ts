@@ -9,6 +9,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type TabParamList = {
   Home: undefined;
   Dashboard: undefined;
+  Eco: undefined;
 };
 
 // ─── Stack principal ──────────────────────────────────────────────────────────
@@ -24,6 +25,11 @@ export type RootStackParamList = {
   Locations: undefined;
   Tags: undefined;
   Settings: undefined;
+  // ── Módulo Reciclador Inteligente ──────────────────────────────────────────
+  EcoHub: undefined;
+  EcoClassify: undefined;
+  EcoItemDetail: { itemId: string };
+  EcoHistory: undefined;
 };
 
 // ─── Helpers de tipo para useNavigation ───────────────────────────────────────

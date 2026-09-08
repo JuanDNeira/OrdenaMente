@@ -20,6 +20,8 @@ import { useAppNavigation } from '../navigation/NavigationContext';
 import type { Item } from '../types/Item';
 import { CONTAINER_TYPE_LABELS, CONTAINER_TYPE_ICONS } from '../types/common';
 import { formatRelativeDate } from '../utils/dateUtils';
+import { ECO_ACTION_ICONS } from '../types/Eco';
+import type { EcoAction } from '../types/Item';
 
 const HEADER_MAX_HEIGHT = 220;
 const HEADER_MIN_HEIGHT = 72;
@@ -31,11 +33,15 @@ const ItemCard = React.memo(function ItemCard({
   index,
   onDelete,
   onToggleFavorite,
+  onEdit,
+  onEcoAction,
 }: {
   item: Item;
   index: number;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  onEdit: (id: string) => void;
+  onEcoAction: (id: string) => void;
 }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(14)).current;
@@ -67,6 +73,11 @@ const ItemCard = React.memo(function ItemCard({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(item.name, '¿Qué deseas hacer con este ítem?', [
       { text: 'Cancelar', style: 'cancel' },
+      { text: 'Editar', onPress: () => onEdit(item.id) },
+      {
+        text: 'Acción ecológica',
+        onPress: () => onEcoAction(item.id),
+      },
       { text: 'Eliminar', style: 'destructive', onPress: () => onDelete(item.id) },
     ]);
   };
@@ -93,14 +104,36 @@ const ItemCard = React.memo(function ItemCard({
       >
         {/* Thumbnail or icon */}
         {hasImage ? (
-          <Image
-            source={{ uri: item.cover_image_uri }}
-            style={styles.itemThumbnail}
-            resizeMode="cover"
-          />
+          <View>
+            <Image
+              source={{ uri: item.cover_image_uri }}
+              style={styles.itemThumbnail}
+              resizeMode="cover"
+            />
+            {item.eco_action && (
+              <View style={styles.ecoBadge}>
+                <Ionicons
+                  name={ECO_ACTION_ICONS[item.eco_action as EcoAction] as React.ComponentProps<typeof Ionicons>['name']}
+                  size={10}
+                  color={Colors.accent}
+                />
+              </View>
+            )}
+          </View>
         ) : (
-          <View style={styles.itemIconWrapper}>
-            <Ionicons name="pricetag" size={18} color={Colors.accent} />
+          <View>
+            <View style={styles.itemIconWrapper}>
+              <Ionicons name="pricetag" size={22} color={Colors.accent} />
+            </View>
+            {item.eco_action && (
+              <View style={styles.ecoBadge}>
+                <Ionicons
+                  name={ECO_ACTION_ICONS[item.eco_action as EcoAction] as React.ComponentProps<typeof Ionicons>['name']}
+                  size={10}
+                  color={Colors.accent}
+                />
+              </View>
+            )}
           </View>
         )}
 
@@ -219,6 +252,20 @@ export default function ContainerDetailScreen() {
     [toggleItemFavorite, containerId]
   );
 
+  const handleEditItem = useCallback(
+    (itemId: string) => {
+      navigate('EditItem', { itemId, containerId });
+    },
+    [navigate, containerId]
+  );
+
+  const handleEcoAction = useCallback(
+    (itemId: string) => {
+      navigate('EcoItemDetail', { itemId });
+    },
+    [navigate]
+  );
+
   const renderItem = useCallback(
     ({ item, index }: { item: Item; index: number }) => (
       <ItemCard
@@ -226,9 +273,11 @@ export default function ContainerDetailScreen() {
         index={index}
         onDelete={handleDeleteItem}
         onToggleFavorite={handleToggleItemFavorite}
+        onEdit={handleEditItem}
+        onEcoAction={handleEcoAction}
       />
     ),
-    [handleDeleteItem, handleToggleItemFavorite]
+    [handleDeleteItem, handleToggleItemFavorite, handleEditItem, handleEcoAction]
   );
 
   const keyExtractor = useCallback((item: Item) => item.id, []);
@@ -343,11 +392,6 @@ export default function ContainerDetailScreen() {
               <Text variant="headingLarge" color={Colors.textPrimary} numberOfLines={2}>
                 {container?.name ?? '...'}
               </Text>
-              {container?.description ? (
-                <Text variant="bodySmall" color={Colors.textTertiary} numberOfLines={2} style={styles.heroDesc}>
-                  {container.description}
-                </Text>
-              ) : null}
               <View style={styles.heroBadgeRow}>
                 <View style={[styles.typeBadge, { backgroundColor: `${accentColor}22`, borderColor: `${accentColor}44` }]}>
                   <Text variant="labelSmall" color={accentColor}>
@@ -596,9 +640,9 @@ const styles = StyleSheet.create({
     ...Shadows.sm,
   },
   itemIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
+    width: 72,
+    height: 72,
+    borderRadius: BorderRadius.lg,
     backgroundColor: `${Colors.accent}18`,
     borderWidth: 1,
     borderColor: `${Colors.accent}33`,
@@ -607,10 +651,23 @@ const styles = StyleSheet.create({
     marginRight: Spacing[3],
   },
   itemThumbnail: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
+    width: 72,
+    height: 72,
+    borderRadius: BorderRadius.lg,
     marginRight: Spacing[3],
+  },
+  ecoBadge: {
+    position: 'absolute',
+    top: -4,
+    right: Spacing[3] - 4,
+    width: 16,
+    height: 16,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.accentGlow,
+    borderWidth: 1,
+    borderColor: `${Colors.accent}66`,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   itemTitleRow: {
     flexDirection: 'row',

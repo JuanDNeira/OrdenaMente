@@ -9,7 +9,7 @@ import { Text } from '../components/ui';
 import HomeScreen from '../screens/HomeScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 
-type TabName = 'Home' | 'Dashboard';
+type TabName = 'Home' | 'Dashboard' | 'Eco';
 
 const TABS: {
   name: TabName;
@@ -17,8 +17,9 @@ const TABS: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   iconActive: React.ComponentProps<typeof Ionicons>['name'];
 }[] = [
-  { name: 'Home', label: 'Inicio', icon: 'cube-outline', iconActive: 'cube' },
-  { name: 'Dashboard', label: 'Panel', icon: 'bar-chart-outline', iconActive: 'bar-chart' },
+  { name: 'Home',      label: 'Inicio', icon: 'cube-outline',      iconActive: 'cube'      },
+  { name: 'Dashboard', label: 'Panel',  icon: 'bar-chart-outline',  iconActive: 'bar-chart' },
+  { name: 'Eco',       label: 'Eco',    icon: 'leaf-outline',       iconActive: 'leaf'      },
 ];
 
 function TabItem({
@@ -31,6 +32,10 @@ function TabItem({
   onPress: () => void;
 }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Color activo diferenciado por tab: Eco usa accent, los demás usan primary
+  const activeColor = tab.name === 'Eco' ? Colors.accent : Colors.primary;
+  const activeGlow  = tab.name === 'Eco' ? Colors.accentGlow : Colors.primaryGlow;
 
   const handlePressIn = () =>
     Animated.spring(scaleAnim, { toValue: 0.88, useNativeDriver: true, speed: 60, bounciness: 4 }).start();
@@ -51,17 +56,17 @@ function TabItem({
       <Animated.View
         style={[
           styles.tabIconWrapper,
-          focused && styles.tabIconWrapperActive,
+          focused && { backgroundColor: activeGlow },
           { transform: [{ scale: scaleAnim }] },
         ]}
       >
         <Ionicons
           name={focused ? tab.iconActive : tab.icon}
           size={22}
-          color={focused ? Colors.primary : Colors.textTertiary}
+          color={focused ? activeColor : Colors.textTertiary}
         />
       </Animated.View>
-      <Text style={[styles.tabLabel, { color: focused ? Colors.primary : Colors.textTertiary }]}>
+      <Text style={[styles.tabLabel, { color: focused ? activeColor : Colors.textTertiary }]}>
         {tab.label}
       </Text>
     </TouchableOpacity>
@@ -79,11 +84,17 @@ export default function TabNavigator() {
     }
   }, [activeTab]);
 
+  // EcoHubScreen cargado con require() lazy para evitar ciclos de importación,
+  // igual que las pantallas registradas en RootNavigator.renderScreen()
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const EcoHubScreen = require('../screens/EcoHubScreen').default;
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {activeTab === 'Home' && <HomeScreen />}
+        {activeTab === 'Home'      && <HomeScreen />}
         {activeTab === 'Dashboard' && <DashboardScreen />}
+        {activeTab === 'Eco'       && <EcoHubScreen />}
       </View>
 
       <View style={[styles.tabBarContainer, { paddingBottom: insets.bottom || Spacing[2] }]}>
@@ -113,6 +124,5 @@ const styles = StyleSheet.create({
   tabBarInner: { flexDirection: 'row', paddingTop: Spacing[2] },
   tabItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing[1] },
   tabIconWrapper: { width: 44, height: 32, borderRadius: BorderRadius.md, alignItems: 'center', justifyContent: 'center' },
-  tabIconWrapperActive: { backgroundColor: Colors.primaryGlow },
   tabLabel: { fontFamily: FontFamily.medium, fontSize: FontSize.xs, marginTop: 2 },
 });
