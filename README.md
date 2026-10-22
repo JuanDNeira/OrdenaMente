@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📦 San Alejo
+# 📦 OrdenaMente
 
 ### Organizador Personal de Objetos con Módulo Reciclador Inteligente
 
@@ -21,11 +21,11 @@
 
 ## 📖 Descripción General
 
-**San Alejo** es una aplicación móvil de organización personal que permite al usuario inventariar, clasificar y gestionar todos los objetos físicos de su hogar o espacio de trabajo. Desde cajas y cajones hasta maletas y estantes, San Alejo convierte el caos doméstico en un inventario digital estructurado, accesible y visualmente atractivo.
+**OrdenaMente** es una aplicación móvil de organización personal que permite al usuario inventariar, clasificar y gestionar todos los objetos físicos de su hogar o espacio de trabajo. Desde cajas y cajones hasta maletas y estantes, OrdenaMente convierte el caos doméstico en un inventario digital estructurado, accesible y visualmente atractivo.
 
 ### ¿Qué problema resuelve?
 
-La mayoría de las personas no sabe exactamente qué objetos tiene ni dónde están guardados. San Alejo resuelve este problema creando un inventario digital jerárquico: cada objeto pertenece a un contenedor, cada contenedor puede estar en una ubicación, y todo es buscable en tiempo real.
+La mayoría de las personas no sabe exactamente qué objetos tiene ni dónde están guardados. OrdenaMente resuelve este problema creando un inventario digital jerárquico: cada objeto pertenece a un contenedor, cada contenedor puede estar en una ubicación, y todo es buscable en tiempo real.
 
 ### ¿Cómo funciona?
 
@@ -37,7 +37,7 @@ La mayoría de las personas no sabe exactamente qué objetos tiene ni dónde est
 
 ### Inspiración del nombre
 
-*San Alejo* es el santo patrono popular asociado a "alejar" lo que no se necesita. El nombre refleja la filosofía de la app: ayudarte a decidir qué conservar, qué organizar y qué dejar ir de forma responsable.
+*OrdenaMente* es el santo patrono popular asociado a "alejar" lo que no se necesita. El nombre refleja la filosofía de la app: ayudarte a decidir qué conservar, qué organizar y qué dejar ir de forma responsable.
 
 ---
 
@@ -65,7 +65,7 @@ La mayoría de las personas no sabe exactamente qué objetos tiene ni dónde est
 ## 🛠 Tecnologías Utilizadas
 
 ### React Native `0.81.5`
-Framework principal para construir la interfaz nativa. Permite escribir una sola base de código en JavaScript/TypeScript que se compila a componentes nativos de Android e iOS. San Alejo usa la **Nueva Arquitectura** (`newArchEnabled: true`) para mejor rendimiento con el bridge JSI.
+Framework principal para construir la interfaz nativa. Permite escribir una sola base de código en JavaScript/TypeScript que se compila a componentes nativos de Android e iOS. OrdenaMente usa la **Nueva Arquitectura** (`newArchEnabled: true`) para mejor rendimiento con el bridge JSI.
 
 ### Expo `~54.0`
 Plataforma de desarrollo que simplifica el ciclo de build, testing y distribución. Provee acceso a APIs nativas (cámara, sistema de archivos, haptics, splash screen) sin configuración nativa manual. Se usa Expo Go para desarrollo y pruebas en dispositivo físico.
@@ -80,7 +80,7 @@ Base de datos SQLite embebida en el dispositivo. Toda la persistencia es **100% 
 Gestión de estado global minimalista. Cada dominio tiene su propio store (`containerStore`, `itemStore`, `ecoStore`, `uiStore`) con acciones tipadas. Se eligió sobre Redux por su API simple, sin boilerplate y con soporte nativo para TypeScript.
 
 ### NativeWind `^4.1` + Tailwind CSS `^3.4`
-Utilidades de estilo basadas en Tailwind CSS adaptadas para React Native. Permite escribir estilos con clases utilitarias directamente en JSX. Complementa el sistema de tema personalizado de San Alejo.
+Utilidades de estilo basadas en Tailwind CSS adaptadas para React Native. Permite escribir estilos con clases utilitarias directamente en JSX. Complementa el sistema de tema personalizado de OrdenaMente.
 
 ### React Native Reanimated `^3.16`
 Librería de animaciones que ejecuta en el hilo UI nativo (no en el hilo JS). Usada para animaciones de escala en botones, transiciones de pantalla con fade+slide, barras de progreso animadas y contadores numéricos fluidos.
@@ -104,7 +104,7 @@ Gradientes lineales en cards de estadísticas, hero del módulo Eco, botones de 
 
 ## 🏗 Arquitectura del Proyecto
 
-San Alejo sigue una arquitectura en capas bien definida que separa responsabilidades y facilita el mantenimiento:
+OrdenaMente sigue una arquitectura en capas bien definida que separa responsabilidades y facilita el mantenimiento:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -157,7 +157,7 @@ Los stores en `src/store/` actúan como intermediarios entre la UI y los reposit
 
 ### Capa de Navegación — Custom Navigator
 
-San Alejo implementa su propio sistema de navegación en `src/navigation/` sin depender de React Navigation para la navegación principal:
+OrdenaMente implementa su propio sistema de navegación en `src/navigation/` sin depender de React Navigation para la navegación principal:
 
 - **`NavigationContext`** — Context de React con `navigate()` y `goBack()`. Mantiene un historial de rutas como stack (`NavigationState[]`).
 - **`RootNavigator`** — Gestiona el stack de navegación y las transiciones animadas (fade + slide de 220ms). Carga pantallas con `require()` lazy para evitar ciclos de importación.
@@ -412,7 +412,7 @@ npm run web
 
 ## 🌱 Módulo Reciclador Inteligente
 
-El **Reciclador Inteligente** es el módulo diferenciador de San Alejo. Permite al usuario tomar decisiones ecológicas sobre los objetos de su inventario, fomentando hábitos de consumo responsable.
+El **Reciclador Inteligente** es el módulo diferenciador de OrdenaMente. Permite al usuario tomar decisiones ecológicas sobre los objetos de su inventario, fomentando hábitos de consumo responsable.
 
 ### Flujo de clasificación
 
@@ -522,7 +522,7 @@ FROM items;
 
 ## 💾 Sistema de Exportación e Importación
 
-San Alejo incluye un sistema completo de respaldo y restauración de datos, accesible desde `SettingsScreen`.
+OrdenaMente incluye un sistema completo de respaldo y restauración de datos, accesible desde `SettingsScreen`.
 
 ### Exportación
 
@@ -570,7 +570,7 @@ Todos los datos viven exclusivamente en el dispositivo:
 
 ### Paleta de colores premium
 
-San Alejo usa una paleta dark-first inspirada en interfaces cinematográficas:
+OrdenaMente usa una paleta dark-first inspirada en interfaces cinematográficas:
 
 | Token | Color | Uso |
 |-------|-------|-----|
@@ -635,7 +635,7 @@ La decisión de tener 4 stores separados (container, item, eco, ui) en lugar de 
 
 **AsyncStorage** es un almacén clave-valor plano. No soporta queries relacionales, índices ni transacciones. Para un inventario con relaciones entre contenedores, ítems, tags y ubicaciones, AsyncStorage sería inviable.
 
-**Una API remota** requeriría autenticación, conectividad a internet y un backend. San Alejo es una app de uso personal y offline-first. El usuario no debería necesitar internet para consultar su inventario.
+**Una API remota** requeriría autenticación, conectividad a internet y un backend. OrdenaMente es una app de uso personal y offline-first. El usuario no debería necesitar internet para consultar su inventario.
 
 **SQLite** ofrece:
 - Queries SQL completas con JOINs, CTEs recursivas y agregaciones
@@ -647,7 +647,7 @@ La decisión de tener 4 stores separados (container, item, eco, ui) en lugar de 
 
 ### ¿Por qué un sistema de navegación custom y no React Navigation completo?
 
-React Navigation es excelente para apps complejas con deep linking, modales nativos y navegación anidada profunda. Para San Alejo, el sistema custom ofrece:
+React Navigation es excelente para apps complejas con deep linking, modales nativos y navegación anidada profunda. Para OrdenaMente, el sistema custom ofrece:
 
 - **Control total sobre las transiciones** — Las animaciones de fade+slide están implementadas exactamente como se diseñaron, sin depender de la API de transiciones de React Navigation
 - **Carga lazy de pantallas** — `require()` dentro de `renderScreen()` rompe los ciclos de importación que surgían con imports estáticos
@@ -766,7 +766,7 @@ CREATE TABLE eco_achievements (
 
 <div align="center">
 
-**San Alejo** — Organiza lo que tienes. Cuida lo que desechas.
+**OrdenaMente** — Organiza lo que tienes. Cuida lo que desechas.
 
 *Construido con React Native · Expo · TypeScript · SQLite*
 

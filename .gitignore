@@ -30,8 +30,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — NUNCA subir claves al repositorio
+.env
+.env.local
 .env*.local
+# Credenciales de Google Play (submit)
+google-play-service-account.json
 
 # typescript
 *.tsbuildinfo

@@ -17,6 +17,7 @@ import { Colors, Spacing, BorderRadius, FontFamily, FontSize, Shadows } from '..
 import { useAppNavigation } from '../navigation/NavigationContext';
 import { useContainerStore } from '../store/containerStore';
 import { useUIStore } from '../store/uiStore';
+import { useAppSettingsStore } from '../store/appSettingsStore';
 import { shareBackup, importDatabase, getStorageInfo } from '../utils/exportImport';
 import { ContainerRepository } from '../database/repositories/ContainerRepository';
 
@@ -173,6 +174,12 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { loadContainers } = useContainerStore();
   const { isDarkMode, toggleTheme } = useUIStore();
+  const {
+    cvEnabled,
+    cvConsentGiven,
+    setCvEnabled,
+    setCvConsentGiven,
+  } = useAppSettingsStore();
 
   const [storageInfo, setStorageInfo] = useState({
     containerCount: 0,
@@ -417,6 +424,61 @@ export default function SettingsScreen() {
             subtitle="Elimina contenedores, ítems y tags"
             onPress={handleClearData}
             destructive
+          />
+        </SettingsSection>
+
+        {/* Inteligencia Artificial */}
+        <SettingsSection title="INTELIGENCIA ARTIFICIAL">
+          <SettingsRow
+            icon="sparkles-outline"
+            iconColor={Colors.primary}
+            iconBg={Colors.primaryGlow}
+            title="Reconocimiento de objetos"
+            subtitle="Análisis local on-device · sin internet · sin costo"
+            onPress={() => {
+              Haptics.selectionAsync();
+              setCvEnabled(!cvEnabled);
+            }}
+            rightElement={<AnimatedThemeToggle active={cvEnabled} />}
+          />
+          <View style={styles.rowDivider} />
+          <SettingsRow
+            icon="shield-checkmark-outline"
+            iconColor={cvConsentGiven ? Colors.accent : Colors.textSecondary}
+            iconBg={cvConsentGiven ? Colors.accentGlow : Colors.backgroundTertiary}
+            title="Aviso de reconocimiento"
+            subtitle={
+              cvConsentGiven
+                ? 'Ya viste el aviso informativo (análisis local)'
+                : 'Verás un aviso la primera vez que uses esta función'
+            }
+            onPress={
+              cvConsentGiven
+                ? () => {
+                    Alert.alert(
+                      'Restablecer aviso',
+                      'La próxima vez que uses el reconocimiento verás el aviso informativo de nuevo.',
+                      [
+                        { text: 'Cancelar', style: 'cancel' },
+                        {
+                          text: 'Restablecer',
+                          onPress: () => {
+                            setCvConsentGiven(false);
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                          },
+                        },
+                      ]
+                    );
+                  }
+                : undefined
+            }
+            rightElement={
+              cvConsentGiven ? (
+                <Ionicons name="checkmark-circle" size={20} color={Colors.accent} />
+              ) : (
+                <Ionicons name="ellipse-outline" size={20} color={Colors.textTertiary} />
+              )
+            }
           />
         </SettingsSection>
 

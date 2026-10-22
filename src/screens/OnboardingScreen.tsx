@@ -159,8 +159,7 @@ export default function OnboardingScreen({ onDone }: OnboardingScreenProps) {
       <View style={[styles.iconCircle, { backgroundColor: `${item.color}22`, borderColor: `${item.color}44` }]}>
         <LinearGradient
           colors={[`${item.color}33`, `${item.color}11`]}
-          style={StyleSheet.absoluteFill}
-          borderRadius={80}
+          style={[StyleSheet.absoluteFill, { borderRadius: 80 }]}
         />
         <Ionicons name={item.icon} size={64} color={item.color} />
       </View>

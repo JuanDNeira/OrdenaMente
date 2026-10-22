@@ -69,6 +69,37 @@ export const migrations: Migration[] = [
     },
   },
   {
+    // v5: tabla app_settings para preferencias de funciones emergentes
+    // Almacena pares clave/valor tipados como TEXT. Cada fila es un ajuste
+    // independiente; las nuevas fases añaden sus claves sin alterar esta migración.
+    //
+    // Claves definidas en esta versión (ver AppSettingsRepository):
+    //   cv_enabled          '0'|'1'  — Computer Vision habilitada (Fase B)
+    //   cv_consent_given    '0'|'1'  — Usuario dio consentimiento para enviar fotos
+    //   ble_enabled         '0'|'1'  — Beacons BLE habilitados (Fase C)
+    //   ble_simulated_mode  '0'|'1'  — Modo simulado de beacons activo (Fase C)
+    version: 5,
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          key        TEXT PRIMARY KEY,
+          value      TEXT NOT NULL,
+          updated_at INTEGER NOT NULL
+        );
+      `);
+      // Insertar valores por defecto. INSERT OR IGNORE garantiza idempotencia
+      // si la migración se ejecuta más de una vez por algún motivo.
+      const now = Date.now();
+      await db.execAsync(`
+        INSERT OR IGNORE INTO app_settings (key, value, updated_at) VALUES
+          ('cv_enabled',         '0', ${now}),
+          ('cv_consent_given',   '0', ${now}),
+          ('ble_enabled',        '0', ${now}),
+          ('ble_simulated_mode', '0', ${now});
+      `);
+    },
+  },
+  {
     // v3: performance indexes for frequent queries
     version: 3,
     up: async (db) => {

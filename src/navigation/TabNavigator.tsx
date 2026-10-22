@@ -1,5 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  BackHandler,
+  Platform,
+  ToastAndroid,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -10,6 +18,13 @@ import HomeScreen from '../screens/HomeScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 
 type TabName = 'Home' | 'Dashboard' | 'Eco';
+
+// Recuerda la pestaña activa al volver desde una pantalla de detalle
+// (TabNavigator se desmonta al navegar, así que el estado local se perdería).
+let lastActiveTab: TabName = 'Home';
+
+/** Tiempo (ms) para confirmar la salida con un segundo toque en "atrás". */
+const EXIT_CONFIRM_MS = 2000;
 
 const TABS: {
   name: TabName;
@@ -74,14 +89,39 @@ function TabItem({
 }
 
 export default function TabNavigator() {
-  const [activeTab, setActiveTab] = useState<TabName>('Home');
+  const [activeTab, setActiveTab] = useState<TabName>(lastActiveTab);
   const insets = useSafeAreaInsets();
+  const lastBackPress = useRef(0);
 
   const handleTabPress = useCallback((name: TabName) => {
     if (name !== activeTab) {
       Haptics.selectionAsync();
+      lastActiveTab = name;
       setActiveTab(name);
     }
+  }, [activeTab]);
+
+  // Botón "atrás" físico en la raíz de la app:
+  //   · En Panel/Eco → vuelve a Inicio.
+  //   · En Inicio → primer toque avisa, segundo toque (dentro de 2 s) sale.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (activeTab !== 'Home') {
+        lastActiveTab = 'Home';
+        setActiveTab('Home');
+        return true;
+      }
+      const now = Date.now();
+      if (now - lastBackPress.current < EXIT_CONFIRM_MS) {
+        return false; // deja que Android cierre la app
+      }
+      lastBackPress.current = now;
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Presiona atrás otra vez para salir', ToastAndroid.SHORT);
+      }
+      return true;
+    });
+    return () => sub.remove();
   }, [activeTab]);
 
   // EcoHubScreen cargado con require() lazy para evitar ciclos de importación,

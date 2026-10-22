@@ -12,6 +12,8 @@ export { TypeSelector } from './TypeSelector';
 export { ColorPicker } from './ColorPicker';
 export { ImagePickerButton } from './ImagePickerButton';
 export { FavoriteButton } from './FavoriteButton';
+export { VisionSuggestionBanner } from './VisionSuggestionBanner';
+export type { VisionBannerState, VisionSuggestion } from './VisionSuggestionBanner';
 export {
   SkeletonLoader,
   SkeletonContainerCard,

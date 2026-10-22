@@ -9,7 +9,7 @@ interface ColorPickerProps {
   colors?: string[];
 }
 
-const DEFAULT_COLORS = Colors.containerTags;
+const DEFAULT_COLORS: string[] = [...Colors.containerTags];
 
 export function ColorPicker({ value, onChange, colors = DEFAULT_COLORS }: ColorPickerProps) {
   return (

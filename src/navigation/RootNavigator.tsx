@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet, Animated, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppProvider from '../providers/AppProvider';
 
@@ -154,6 +154,21 @@ export default function RootNavigator() {
   const goBack = useCallback(() => {
     setHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
   }, []);
+
+  // Botón "atrás" físico / gesto de Android: retrocede en el historial de pantallas.
+  // Devuelve true (evento consumido) si había a dónde volver. En la raíz (MainTabs)
+  // devuelve false para que TabNavigator decida (volver a Inicio / doble toque para salir).
+  const canGoBack = onboardingDone === true && history.length > 1;
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (canGoBack) {
+        goBack();
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [canGoBack, goBack]);
 
   // Still loading onboarding state
   if (onboardingDone === null) return null;

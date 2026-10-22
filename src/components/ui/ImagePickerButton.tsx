@@ -38,7 +38,25 @@ export function ImagePickerButton({
   const [isLoading, setIsLoading] = React.useState(false);
   const dim = SIZES[size];
 
-  const pickImage = async () => {
+  /** Reduce la imagen (máx. 800 px) y la entrega al formulario. */
+  const processAsset = async (assetUri: string) => {
+    setIsLoading(true);
+    try {
+      const manipulated = await ImageManipulator.manipulateAsync(
+        assetUri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onImageSelected(manipulated.uri);
+    } catch {
+      Alert.alert('Error', 'No se pudo procesar la imagen.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const pickFromGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para seleccionar imágenes.');
@@ -53,22 +71,43 @@ export function ImagePickerButton({
     });
 
     if (!result.canceled && result.assets[0]) {
-      setIsLoading(true);
-      try {
-        // Resize to max 800px to keep storage small
-        const manipulated = await ImageManipulator.manipulateAsync(
-          result.assets[0].uri,
-          [{ resize: { width: 800 } }],
-          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
-        );
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        onImageSelected(manipulated.uri);
-      } catch {
-        Alert.alert('Error', 'No se pudo procesar la imagen.');
-      } finally {
-        setIsLoading(false);
-      }
+      await processAsset(result.assets[0].uri);
     }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso de cámara requerido',
+        'Activa el permiso de cámara para OrdenaMente en los ajustes del teléfono para poder tomar fotos.'
+      );
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await processAsset(result.assets[0].uri);
+      }
+    } catch {
+      Alert.alert('Error', 'No se pudo abrir la cámara.');
+    }
+  };
+
+  /** Pregunta de dónde viene la imagen: cámara o galería. */
+  const pickImage = () => {
+    Alert.alert('Agregar imagen', '¿Cómo quieres agregarla?', [
+      { text: 'Tomar foto', onPress: takePhoto },
+      { text: 'Elegir de la galería', onPress: pickFromGallery },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   };
 
   const handleLongPress = () => {

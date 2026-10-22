@@ -206,8 +206,7 @@ const ItemClassifyCard = React.memo(function ItemClassifyCard({
         colors={[Colors.glass, Colors.glassDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-        borderRadius={BorderRadius['2xl']}
+        style={[StyleSheet.absoluteFill, { borderRadius: BorderRadius['2xl'] }]}
       />
 
       {/* Image or icon */}
@@ -223,8 +222,7 @@ const ItemClassifyCard = React.memo(function ItemClassifyCard({
             colors={Colors.gradients.accent}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            borderRadius={BorderRadius.xl}
+            style={[StyleSheet.absoluteFill, { borderRadius: BorderRadius.xl }]}
           />
           <Ionicons name="pricetag" size={36} color="rgba(255,255,255,0.9)" />
         </View>
